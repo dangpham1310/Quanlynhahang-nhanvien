@@ -1,14 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:nhanvien/screens/order/widgets/bottom_actions.dart';
+import 'package:nhanvien/models/order_item.dart';
 
 class OrderInputPage extends StatefulWidget {
   final VoidCallback? onIncreaseQuantity;
   final VoidCallback? onDecreaseQuantity;
+  final Function(String)? onGangChanged;
+  final VoidCallback? onToggleGangEditMode;
+  final VoidCallback? onDeleteItem;
+  final VoidCallback? onShowComment;
+  final VoidCallback? onAddItemWithoutNote;
+  final String currentGang;
+  final bool isGangEditMode;
+  final List<OrderItem> orderedItems;
+  final double totalAmount;
+  final String tableNumber;
   
   const OrderInputPage({
     super.key, 
     this.onIncreaseQuantity,
     this.onDecreaseQuantity,
+    this.onGangChanged,
+    this.onToggleGangEditMode,
+    this.onDeleteItem,
+    this.onShowComment,
+    this.onAddItemWithoutNote,
+    required this.currentGang,
+    required this.isGangEditMode,
+    required this.orderedItems,
+    required this.totalAmount,
+    required this.tableNumber,
   });
 
   @override
@@ -43,7 +64,15 @@ class _OrderInputPageState extends State<OrderInputPage> {
       children: [
         _buildInputToolbar(),
         Expanded(flex: 5, child: _buildInputPad()),
-        const BottomActions(),
+        BottomActions(
+          orderItems: widget.orderedItems.map((item) => {
+            'name': item.name,
+            'quantity': item.quantity,
+            'price': item.price,
+          }).toList(),
+          totalAmount: widget.totalAmount,
+          tableNumber: widget.tableNumber,
+        ),
       ],
     );
   }
@@ -67,12 +96,34 @@ class _OrderInputPageState extends State<OrderInputPage> {
                 onPressed: widget.onDecreaseQuantity, 
                 icon: const Icon(Icons.remove)
               ),
-              IconButton(onPressed: () {}, icon: const Icon(Icons.close)),
-              IconButton(onPressed: () {}, icon: const Icon(Icons.chat_bubble_outline)),
+              IconButton(
+                onPressed: widget.onDeleteItem, 
+                icon: const Icon(Icons.close)
+              ),
+              IconButton(
+                onPressed: widget.onShowComment, 
+                icon: const Icon(Icons.chat_bubble_outline)
+              ),
+              ElevatedButton(
+                onPressed: widget.onAddItemWithoutNote, 
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange.shade100,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.all(8),
+                  minimumSize: const Size(40, 40),
+                ),
+                child: const Text(
+                  '+*',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
               const Spacer(),
-              _toolbarButton('G'),
-              _toolbarButton('G1'),
-              _toolbarButton('G2'),
+              _toolbarButton('G', isSelected: widget.isGangEditMode, onPressed: widget.onToggleGangEditMode),
+              _toolbarButton('G1', isSelected: widget.currentGang == 'G1'),
+              _toolbarButton('G2', isSelected: widget.currentGang == 'G2'),
               _toolbarButton('---'),
             ],
           ),
@@ -95,15 +146,27 @@ class _OrderInputPageState extends State<OrderInputPage> {
     );
   }
 
-  Widget _toolbarButton(String text) {
+  Widget _toolbarButton(String text, {bool isSelected = false, VoidCallback? onPressed}) {
     return TextButton(
       style: TextButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 4),
         minimumSize: const Size(20, 20),
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        backgroundColor: isSelected ? Colors.orange.shade100 : null,
       ),
-      onPressed: () {},
-      child: Text(text, style: const TextStyle(color: Colors.black, fontSize: 14)),
+      onPressed: onPressed ?? () {
+        if (text.startsWith('G') && text != 'G' && widget.onGangChanged != null) {
+          widget.onGangChanged!(text);
+        }
+      },
+      child: Text(
+        text, 
+        style: TextStyle(
+          color: isSelected ? Colors.orange.shade700 : Colors.black, 
+          fontSize: 14,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        )
+      ),
     );
   }
 

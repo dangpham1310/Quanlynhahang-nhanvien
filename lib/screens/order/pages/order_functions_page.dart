@@ -1,17 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:nhanvien/screens/order/widgets/bottom_actions.dart';
 import 'package:nhanvien/screens/order/widgets/menu_toolbar.dart';
+import 'package:nhanvien/models/order_item.dart';
 
 class OrderFunctionsPage extends StatefulWidget {
   final Function(String) onAddItem;
   final VoidCallback? onIncreaseQuantity;
   final VoidCallback? onDecreaseQuantity;
+  final Function(String)? onGangChanged;
+  final VoidCallback? onToggleGangEditMode;
+  final VoidCallback? onDeleteItem;
+  final VoidCallback? onShowComment;
+  final VoidCallback? onAddItemWithoutNote;
+  final String currentGang;
+  final bool isGangEditMode;
+  final List<OrderItem> orderedItems;
+  final double totalAmount;
+  final String tableNumber;
   
   const OrderFunctionsPage({
     super.key, 
     required this.onAddItem,
     this.onIncreaseQuantity,
     this.onDecreaseQuantity,
+    this.onGangChanged,
+    this.onToggleGangEditMode,
+    this.onDeleteItem,
+    this.onShowComment,
+    this.onAddItemWithoutNote,
+    required this.currentGang,
+    required this.isGangEditMode,
+    required this.orderedItems,
+    required this.totalAmount,
+    required this.tableNumber,
   });
 
   @override
@@ -25,7 +46,7 @@ class _OrderFunctionsPageState extends State<OrderFunctionsPage> {
 
   // TODO: This data should be provided by a service or state management solution
   final Map<String, List<String>> _menuData = {
-    "MITTAGSMENU": [
+    "MITTAGSMENUU": [
       "L1 Mittag 1 M1-M6-N1", "L2 Mittag 2 M3-M5-N3", "L3 Mittag 3 U6-N3", "L4 Mittag 4 C1-N1",
       "L5 Mittag 5 C3-M6", "L6 Mittag 6 M5-M6-Nigiri Avocado", "L7 Mittag 7 Nudeln mit Gemüse", "L8 Mittag 8 Nudeln mit Huhn",
       "L9 Mittag 9 Nudeln mit Ente", "L10 Mittag 10 Dundeln Sosser mit Gemüse", "L11 Mittag 11 Dunkelnsosser mit", "L12 Mittag 12 Currysosser mit Ente",
@@ -76,6 +97,13 @@ class _OrderFunctionsPageState extends State<OrderFunctionsPage> {
         MenuToolbar(
           onIncreaseQuantity: widget.onIncreaseQuantity,
           onDecreaseQuantity: widget.onDecreaseQuantity,
+          onGangChanged: widget.onGangChanged,
+          onToggleGangEditMode: widget.onToggleGangEditMode,
+          onDeleteItem: widget.onDeleteItem,
+          onShowComment: widget.onShowComment,
+          onAddItemWithoutNote: widget.onAddItemWithoutNote,
+          currentGang: widget.currentGang,
+          isGangEditMode: widget.isGangEditMode,
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0), // Reduced from 8.0, 4.0
@@ -112,7 +140,15 @@ class _OrderFunctionsPageState extends State<OrderFunctionsPage> {
                   },
                 ),
         ),
-        const BottomActions(),
+        BottomActions(
+          orderItems: widget.orderedItems.map((item) => {
+            'name': item.name,
+            'quantity': item.quantity,
+            'price': item.price,
+          }).toList(),
+          totalAmount: widget.totalAmount,
+          tableNumber: widget.tableNumber,
+        ),
       ],
     );
   }

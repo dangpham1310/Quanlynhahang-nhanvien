@@ -1,17 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:nhanvien/screens/order/widgets/bottom_actions.dart';
 import 'package:nhanvien/screens/order/widgets/menu_toolbar.dart';
+import 'package:nhanvien/models/order_item.dart';
 
 class OrderMenuPage extends StatefulWidget {
   final Function(String) onAddItem;
   final VoidCallback? onIncreaseQuantity;
   final VoidCallback? onDecreaseQuantity;
+  final Function(String)? onGangChanged;
+  final VoidCallback? onToggleGangEditMode;
+  final VoidCallback? onDeleteItem;
+  final VoidCallback? onShowComment;
+  final VoidCallback? onAddItemWithoutNote;
+  final String currentGang;
+  final bool isGangEditMode;
+  final List<OrderItem> orderedItems;
+  final double totalAmount;
+  final String tableNumber;
   
   const OrderMenuPage({
     super.key, 
     required this.onAddItem,
     this.onIncreaseQuantity,
     this.onDecreaseQuantity,
+    this.onGangChanged,
+    this.onToggleGangEditMode,
+    this.onDeleteItem,
+    this.onShowComment,
+    this.onAddItemWithoutNote,
+    required this.currentGang,
+    required this.isGangEditMode,
+    required this.orderedItems,
+    required this.totalAmount,
+    required this.tableNumber,
   });
 
   @override
@@ -54,6 +75,13 @@ class _OrderMenuPageState extends State<OrderMenuPage>
         MenuToolbar(
           onIncreaseQuantity: widget.onIncreaseQuantity,
           onDecreaseQuantity: widget.onDecreaseQuantity,
+          onGangChanged: widget.onGangChanged,
+          onToggleGangEditMode: widget.onToggleGangEditMode,
+          onDeleteItem: widget.onDeleteItem,
+          onShowComment: widget.onShowComment,
+          onAddItemWithoutNote: widget.onAddItemWithoutNote,
+          currentGang: widget.currentGang,
+          isGangEditMode: widget.isGangEditMode,
         ),
         _buildMenuTabBar(),
         Expanded(
@@ -68,7 +96,15 @@ class _OrderMenuPageState extends State<OrderMenuPage>
             ),
           ),
         ),
-        const BottomActions(),
+        BottomActions(
+          orderItems: widget.orderedItems.map((item) => {
+            'name': item.name,
+            'quantity': item.quantity,
+            'price': item.price,
+          }).toList(),
+          totalAmount: widget.totalAmount,
+          tableNumber: widget.tableNumber,
+        ),
       ],
     );
   }

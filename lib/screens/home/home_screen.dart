@@ -10,6 +10,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _numberDisplayController = TextEditingController();
+  String? _tableError;
 
   @override
   void initState() {
@@ -31,17 +32,25 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           _numberDisplayController.text = _numberDisplayController.text
               .substring(0, _numberDisplayController.text.length - 1);
         }
+        _tableError = null;
       } else if (input == 'enter') {
         if (_numberDisplayController.text.isNotEmpty) {
-          Navigator.pushNamed(
-            context,
-            '/order',
-            arguments: _numberDisplayController.text,
-          );
-          _numberDisplayController.clear();
+          final tableNum = int.tryParse(_numberDisplayController.text);
+          if (tableNum == null || tableNum < 1 || tableNum > 30) {
+            _tableError = 'Không có bàn đó';
+          } else {
+            _tableError = null;
+            Navigator.pushNamed(
+              context,
+              '/order',
+              arguments: _numberDisplayController.text,
+            );
+            _numberDisplayController.clear();
+          }
         }
       } else {
         _numberDisplayController.text += input;
+        _tableError = null;
       }
     });
   }
@@ -94,52 +103,64 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return Container(
       padding: const EdgeInsets.all(4),
       color: Colors.grey[700],
-      child: Row(
+      child: Column(
         children: [
-          Expanded(
-            flex: 2,
-            child: Container(
-              height: 80,
-              margin: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: Colors.grey.shade800),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Center(
-                child: Text(
-                  _numberDisplayController.text,
-                  style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: Container(
+                  height: 80,
+                  margin: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.grey.shade800),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Center(
+                    child: Text(
+                      _numberDisplayController.text,
+                      style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                 ),
               ),
-            ),
+              Expanded(
+                flex: 5,
+                child: GridView.count(
+                  shrinkWrap: true,
+                  crossAxisCount: 6,
+                  mainAxisSpacing: 2,
+                  crossAxisSpacing: 2,
+                  childAspectRatio: 1.4,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [
+                    _buildNumpadKey('1'),
+                    _buildNumpadKey('2'),
+                    _buildNumpadKey('3'),
+                    _buildNumpadKey('4'),
+                    _buildNumpadKey('5'),
+                    _buildNumpadKey('6'),
+                    _buildNumpadKey('7'),
+                    _buildNumpadKey('8'),
+                    _buildNumpadKey('9'),
+                    _buildNumpadKey('0'),
+                    _buildNumpadKey('backspace', icon: Icons.backspace_outlined),
+                    _buildNumpadKey('enter', text: 'Enter'),
+                  ],
+                ),
+              ),
+            ],
           ),
-          Expanded(
-            flex: 5,
-            child: GridView.count(
-              shrinkWrap: true,
-              crossAxisCount: 6,
-              mainAxisSpacing: 2,
-              crossAxisSpacing: 2,
-              childAspectRatio: 1.4,
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-                _buildNumpadKey('1'),
-                _buildNumpadKey('2'),
-                _buildNumpadKey('3'),
-                _buildNumpadKey('4'),
-                _buildNumpadKey('5'),
-                _buildNumpadKey('6'),
-                _buildNumpadKey('7'),
-                _buildNumpadKey('8'),
-                _buildNumpadKey('9'),
-                _buildNumpadKey('0'),
-                _buildNumpadKey('backspace', icon: Icons.backspace_outlined),
-                _buildNumpadKey('enter', text: 'Enter'),
-              ],
+          if (_tableError != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                _tableError!,
+                style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+              ),
             ),
-          ),
         ],
       ),
     );
