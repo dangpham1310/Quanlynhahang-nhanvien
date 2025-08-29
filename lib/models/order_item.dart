@@ -5,6 +5,7 @@ class OrderItem {
   String gang; // Thêm trường gang để phân loại
   String note; // Thêm trường note để lưu ghi chú
   double extraPrice; // Thêm trường extraPrice để lưu giá phụ thêm
+  int discountPercent; // Giảm giá cho từng món (%) 
 
   OrderItem({
     required this.name, 
@@ -13,5 +14,6 @@ class OrderItem {
     this.gang = 'G1', // Mặc định là G1
     this.note = '', // Mặc định note rỗng
     this.extraPrice = 0.0, // Mặc định giá phụ là 0
+    this.discountPercent = 0, // Mặc định không giảm
   });
 } 

@@ -225,14 +225,51 @@ class _OrderListAreaState extends State<OrderListArea> {
                                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                               ),
                             )),
-                            // Giá
-                            Expanded(flex: 1, child: Text(
-                              '€${(item.price * item.quantity).toStringAsFixed(2)}', 
-                              textAlign: TextAlign.right,
-                              style: TextStyle(
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            // Giá: hiển thị giá cũ (gạch đỏ) nếu có giảm, cạnh đó là giá mới
+                            Expanded(
+                              flex: 1,
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: Builder(
+                                  builder: (context) {
+                                    final double originalTotal = item.price * item.quantity;
+                                    final bool hasDiscount = item.discountPercent > 0;
+                                    final double discountedTotal = hasDiscount
+                                        ? originalTotal * (1 - item.discountPercent / 100)
+                                        : originalTotal;
+                                    final TextStyle baseStyle = TextStyle(
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                    );
+                                    return FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.centerRight,
+                                      child: Text.rich(
+                                        TextSpan(
+                                          children: [
+                                            if (hasDiscount)
+                                              TextSpan(
+                                                text: '€${originalTotal.toStringAsFixed(2)}  ',
+                                                style: const TextStyle(
+                                                  color: Colors.red,
+                                                  decoration: TextDecoration.lineThrough,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            TextSpan(
+                                              text: '€${discountedTotal.toStringAsFixed(2)}',
+                                              style: baseStyle,
+                                            ),
+                                          ],
+                                        ),
+                                        textAlign: TextAlign.right,
+                                        maxLines: 1,
+                                        softWrap: false,
+                                      ),
+                                    );
+                                  },
+                                ),
                               ),
-                            )),
+                            ),
                           ],
                         ),
                         // Hiển thị note nếu có - dạng dòng riêng biệt

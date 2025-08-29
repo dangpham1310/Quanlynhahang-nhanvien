@@ -21,6 +21,7 @@ class _OrderScreenState extends State<OrderScreen> {
   String _currentGang = 'G1'; // Thêm state để quản lý Gang hiện tại
   bool _isGangEditMode = false; // Thêm state để quản lý chế độ đổi Gang
   bool _showCommentPage = false; // Thêm state để quản lý hiển thị màn hình comment
+  int _globalDiscountPercent = 10; // Rabatt gesamt mặc định 10%
 
   @override
   void initState() {
@@ -287,7 +288,57 @@ class _OrderScreenState extends State<OrderScreen> {
     }
   }
 
-  double get _totalOrderPrice => _orderedItems.fold(0.0, (sum, item) => sum + (item.price * item.quantity) + (item.extraPrice * item.quantity));
+  double get _totalOrderPrice => _orderedItems.fold(0.0, (sum, item) {
+    final double base = (item.price * item.quantity) + (item.extraPrice * item.quantity);
+    final double afterItemDiscount = base * (1 - (item.discountPercent / 100));
+    return sum + afterItemDiscount;
+  });
+  
+  void _applyItemDiscountDialog() {
+    if (_selectedItemIndex == null || _selectedItemIndex! >= _orderedItems.length) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng chọn món để giảm giá')), 
+      );
+      return;
+    }
+    final List<int> options = [0, 5, 10, 15, 20, 25, 30, 40, 50];
+    final OrderItem item = _orderedItems[_selectedItemIndex!];
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Rabatt einzeln (${item.name})'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: options.length,
+              itemBuilder: (context, index) {
+                final value = options[index];
+                final bool isSelected = value == item.discountPercent;
+                return ListTile(
+                  title: Text('$value%'),
+                  trailing: isSelected ? const Icon(Icons.check, color: Colors.green) : null,
+                  onTap: () {
+                    setState(() {
+                      _orderedItems[_selectedItemIndex!].discountPercent = value;
+                    });
+                    Navigator.of(context).pop();
+                  },
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Đóng'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   Widget _buildDrawerItem(String title, IconData icon) {
     return ListTile(
@@ -296,6 +347,48 @@ class _OrderScreenState extends State<OrderScreen> {
       onTap: () {
         // Handle drawer item taps
         Scaffold.of(context).closeEndDrawer();
+      },
+    );
+  }
+
+  void _showGlobalDiscountDialog() {
+    final List<int> options = [0, 5, 10, 15, 20, 25, 30, 40, 50];
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Rabatt gesamt (%)'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: options.length,
+              itemBuilder: (context, index) {
+                final value = options[index];
+                final bool isSelected = value == _globalDiscountPercent;
+                return ListTile(
+                  title: Text('$value%'),
+                  trailing: isSelected ? const Icon(Icons.check, color: Colors.green) : null,
+                  onTap: () {
+                    setState(() {
+                      _globalDiscountPercent = value;
+                    });
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Đã chọn giảm giá $value%')),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Đóng'),
+            ),
+          ],
+        );
       },
     );
   }
@@ -369,8 +462,22 @@ class _OrderScreenState extends State<OrderScreen> {
                 ),
               ),
               _buildDrawerItem('Kunde', Icons.people_alt),
-              _buildDrawerItem('Rabatt gesamt', Icons.percent),
-              _buildDrawerItem('Rabatt einzeln', Icons.percent),
+              ListTile(
+                leading: const Icon(Icons.percent, color: Colors.black),
+                title: Text('Rabatt gesamt  (' + _globalDiscountPercent.toString() + '%)', style: const TextStyle(color: Colors.black)),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _showGlobalDiscountDialog();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.percent, color: Colors.black),
+                title: const Text('Rabatt einzeln', style: TextStyle(color: Colors.black)),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _applyItemDiscountDialog();
+                },
+              ),
               _buildDrawerItem('Abbrechen', Icons.cancel),
               _buildDrawerItem('Tisch wechseln', Icons.auto_delete),
               _buildDrawerItem('Rechnung splitten', Icons.call_split),
